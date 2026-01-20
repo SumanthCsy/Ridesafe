@@ -189,24 +189,38 @@ const AlertOverlay: React.FC<{ lang: Language; speed: number; onDismiss: () => v
   
   return (
     <div 
-      className="fixed inset-0 z-[300] flex flex-col items-center justify-center text-white px-8 text-center"
-      style={{ backgroundColor: blink ? 'rgba(220, 38, 38, 0.95)' : 'rgba(153, 27, 27, 0.95)' }}
+      className="fixed inset-0 flex flex-col items-center justify-center px-8 text-center"
+      style={{ 
+        backgroundColor: blink ? 'rgba(220, 38, 38, 0.95)' : 'rgba(153, 27, 27, 0.95)',
+        zIndex: 9999,
+        color: '#ffffff',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}
       onClick={onDismiss}
     >
-      <div className="relative mb-6">
-         <i className="fa-solid fa-triangle-exclamation text-9xl drop-shadow-[0_0_40px_rgba(255,255,255,0.8)]"></i>
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-black font-black text-2xl mt-4">!</div>
+      <div className="relative mb-6" style={{ color: '#ffffff' }}>
+         <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '8rem', color: '#ffffff', textShadow: '0 0 40px rgba(255,255,255,0.8)' }}></i>
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-black text-2xl mt-4" style={{ color: '#000000' }}>!</div>
       </div>
       
-      <h1 className="text-7xl font-black mb-4 uppercase italic tracking-tighter">
+      <h1 className="font-black mb-4 uppercase italic tracking-tighter" style={{ fontSize: '3.5rem', color: '#ffffff', lineHeight: '1' }}>
         {t.alertMessage}
       </h1>
       
       <div className="bg-white/10 backdrop-blur-3xl px-10 py-5 rounded-[2.5rem] border border-white/20 mb-12 shadow-2xl">
-        <p className="text-6xl font-black">{Math.round(speed)} <span className="text-xl opacity-50 uppercase tracking-widest">{t.unit}</span></p>
+        <p className="font-black" style={{ fontSize: '3.5rem', color: '#ffffff' }}>
+          {Math.round(speed)} <span className="text-xl opacity-50 uppercase tracking-widest">{t.unit}</span>
+        </p>
       </div>
 
-      <button className="bg-white text-red-600 px-14 py-6 rounded-full font-black text-2xl uppercase tracking-[0.2em] shadow-[0_20px_60px_rgba(220,38,38,0.5)] active:scale-95 transition-transform">
+      <button 
+        className="px-14 py-6 rounded-full font-black text-2xl uppercase tracking-[0.2em] active:scale-95 transition-transform"
+        style={{ backgroundColor: '#ffffff', color: '#dc2626', boxShadow: '0 20px 60px rgba(220,38,38,0.5)' }}
+      >
         SLOW DOWN
       </button>
     </div>
