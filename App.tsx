@@ -178,9 +178,19 @@ const TestModePage: React.FC<{
 
 const AlertOverlay: React.FC<{ lang: Language; speed: number; onDismiss: () => void }> = ({ lang, speed, onDismiss }) => {
   const t = translations[lang];
+  const [blink, setBlink] = useState(true);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBlink(prev => !prev);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <div 
-      className="fixed inset-0 z-[300] animate-blink-red flex flex-col items-center justify-center text-white px-8 text-center backdrop-blur-sm"
+      className="fixed inset-0 z-[300] flex flex-col items-center justify-center text-white px-8 text-center"
+      style={{ backgroundColor: blink ? 'rgba(220, 38, 38, 0.95)' : 'rgba(153, 27, 27, 0.95)' }}
       onClick={onDismiss}
     >
       <div className="relative mb-6">
