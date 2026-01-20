@@ -1,0 +1,7 @@
+{
+  "name": "RideSafe - Velocity Companion",
+  "description": "A high-contrast riding safety app that monitors your speed in real-time, providing visual and audio alerts when you exceed your set speed limit.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
