@@ -260,17 +260,23 @@ const App: React.FC = () => {
   // Sound initialization
   const initAudio = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('public/siren.mp3');
+      audioRef.current = new Audio('/siren.mp3');
       audioRef.current.loop = true;
+      audioRef.current.preload = 'auto';
+      // Load the audio file
+      audioRef.current.load();
     }
+    // Play and pause immediately to unlock audio on mobile
     audioRef.current.play().then(() => {
         audioRef.current?.pause();
         audioRef.current!.currentTime = 0;
-    }).catch(() => {});
+    }).catch((err) => {
+      console.log('Audio init failed (normal on some browsers):', err);
+    });
   };
 
   const handleStartRiding = async () => {
-    // 1. Init audio session context
+    // 1. Init audio session context (must be during user interaction)
     initAudio();
 
     // 2. Request permissions
@@ -282,6 +288,7 @@ const App: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         // Permission granted, start the app
+        console.log('Location permission granted');
         setIsStarted(true);
       }, 
       (err) => {
@@ -328,7 +335,11 @@ const App: React.FC = () => {
       if (!isAlerting) {
         setIsAlerting(true);
         sendNotification();
-        if (audioRef.current) audioRef.current.play().catch(() => {});
+        if (audioRef.current) {
+          audioRef.current.play().catch((err) => {
+            console.error('Audio play failed:', err);
+          });
+        }
         if (vibrate && navigator.vibrate) navigator.vibrate([1000, 200, 1000]);
         
         const newRecord: SpeedRecord = {
