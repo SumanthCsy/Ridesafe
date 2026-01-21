@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, Language, SpeedRecord } from './types';
 import { translations } from './translations';
@@ -80,7 +79,6 @@ const SettingsCard: React.FC<{
           value={limit} 
           onChange={(e) => setLimit(Number(e.target.value))}
           className="w-full h-3 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-blue-500"
-          aria-label="Speed limit"
         />
         <div className="flex justify-between mt-3 text-[10px] text-zinc-600 font-black uppercase">
           <span>10 km/h</span>
@@ -137,8 +135,8 @@ const TestModePage: React.FC<{
             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Test Alerts & Warnings</p>
           </div>
         </div>
-        <button onClick={onExit} className="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-400" aria-label="Close">
-          <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+        <button onClick={onExit} className="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-400">
+          <i className="fa-solid fa-xmark"></i>
         </button>
       </div>
 
@@ -151,16 +149,14 @@ const TestModePage: React.FC<{
             <button 
               onClick={() => setSpeed(Math.max(0, speed - 10))}
               className="flex-1 py-8 bg-zinc-900 border border-zinc-800 rounded-3xl active:scale-95 transition-all"
-              aria-label="Decrease speed"
             >
-              <i className="fa-solid fa-minus text-2xl" aria-hidden="true"></i>
+              <i className="fa-solid fa-minus text-2xl"></i>
             </button>
             <button 
               onClick={() => setSpeed(speed + 10)}
               className="flex-1 py-8 bg-zinc-900 border border-zinc-800 rounded-3xl active:scale-95 transition-all"
-              aria-label="Increase speed"
             >
-              <i className="fa-solid fa-plus text-2xl text-blue-500" aria-hidden="true"></i>
+              <i className="fa-solid fa-plus text-2xl text-blue-500"></i>
             </button>
           </div>
           <button 
@@ -195,14 +191,13 @@ const AlertOverlay: React.FC<{ lang: Language; speed: number; onDismiss: () => v
       className="fixed inset-0 flex flex-col items-center justify-center px-8 text-center"
       style={{ 
         backgroundColor: blink ? 'rgba(220, 38, 38, 0.95)' : 'rgba(153, 27, 27, 0.95)',
-        zIndex: 99999,
+        zIndex: 9999,
         color: '#ffffff',
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,
-        touchAction: 'manipulation'
+        bottom: 0
       }}
       onClick={onDismiss}
     >
@@ -224,7 +219,6 @@ const AlertOverlay: React.FC<{ lang: Language; speed: number; onDismiss: () => v
       <button 
         className="px-14 py-6 rounded-full font-black text-2xl uppercase tracking-[0.2em] active:scale-95 transition-transform"
         style={{ backgroundColor: '#ffffff', color: '#dc2626', boxShadow: '0 20px 60px rgba(220,38,38,0.5)' }}
-        onClick={onDismiss}
       >
         SLOW DOWN
       </button>
@@ -296,26 +290,15 @@ const App: React.FC = () => {
       audioRef.current.load();
     }
     // Play and pause immediately to unlock audio on mobile
-    if (audioRef.current.paused) {
-      audioRef.current.play().then(() => {
+    audioRef.current.play().then(() => {
         audioRef.current?.pause();
         audioRef.current!.currentTime = 0;
-      }).catch((err) => {
-        console.log('Audio init failed (normal on some browsers):', err);
-      });
-    }
+    }).catch((err) => {
+      console.log('Audio init failed (normal on some browsers):', err);
+    });
   };
 
-  // Function to request user interaction for audio on mobile
-  const requestAudioPlayback = useCallback(() => {
-    if (audioRef.current && audioRef.current.paused) {
-      audioRef.current.play().catch((err) => {
-        console.log('Audio playback still blocked:', err);
-      });
-    }
-  }, []);
-
-  const handleStartRiding = () => {
+  const handleStartRiding = async () => {
     // 1. Init audio session context (must be during user interaction)
     initAudio();
 
@@ -333,13 +316,9 @@ const App: React.FC = () => {
       }, 
       (err) => {
         console.error("Geolocation error:", err);
-        alert("Please enable location access to use this app. Make sure location services are enabled in your device settings. Error: " + err.message);
+        alert("Please enable location access to use this app.");
       }, 
-      { 
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: true }
     );
   };
 
@@ -362,23 +341,10 @@ const App: React.FC = () => {
       watchId = navigator.geolocation.watchPosition((pos) => {
         const speedInKmH = (pos.coords.speed || 0) * 3.6;
         setSpeed(Math.max(0, speedInKmH));
-      }, (err) => {
-        console.error('GPS Error:', err);
-        // Handle geolocation errors gracefully
-        if (err.code === 1) {
-          // PERMISSION_DENIED
-          alert('Location permission denied. Please enable location access in your browser settings.');
-        } else if (err.code === 2) {
-          // POSITION_UNAVAILABLE
-          console.warn('Location information unavailable');
-        } else if (err.code === 3) {
-          // TIMEOUT
-          console.warn('Location request timed out');
-        }
-      }, {
+      }, (err) => console.error(err), {
         enableHighAccuracy: true,
         maximumAge: 0,
-        timeout: 10000
+        timeout: 5000
       });
     }
     return () => {
@@ -392,23 +358,12 @@ const App: React.FC = () => {
       if (!isAlerting) {
         setIsAlerting(true);
         sendNotification();
-        // Attempt to play audio with proper error handling
         if (audioRef.current) {
-          const playPromise = audioRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise.catch((err) => {
-              console.error('Audio play failed:', err);
-              console.log('This may be due to browser autoplay policy. Audio will be muted.');
-            });
-          }
+          audioRef.current.play().catch((err) => {
+            console.error('Audio play failed:', err);
+          });
         }
-        if (vibrate && navigator.vibrate) {
-          try {
-            navigator.vibrate([1000, 200, 1000]);
-          } catch (vibrateErr) {
-            console.warn('Vibration failed:', vibrateErr);
-          }
-        }
+        if (vibrate && navigator.vibrate) navigator.vibrate([1000, 200, 1000]);
         
         const newRecord: SpeedRecord = {
           id: Date.now().toString(),
@@ -426,13 +381,7 @@ const App: React.FC = () => {
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
         }
-        if (navigator.vibrate) {
-          try {
-            navigator.vibrate(0);
-          } catch (vibrateErr) {
-            console.warn('Vibration stop failed:', vibrateErr);
-          }
-        }
+        if (navigator.vibrate) navigator.vibrate(0);
       }
     }
   }, [speed, limit, isAlerting, vibrate, sendNotification]);
@@ -482,7 +431,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] pb-40 overflow-y-auto" onClick={requestAudioPlayback}>
+    <div className="min-h-screen bg-[#020202] pb-40 overflow-y-auto">
       {/* Background Decor */}
       <div className={`fixed inset-0 transition-opacity duration-1000 ${isAlerting ? 'bg-red-950/20' : 'bg-transparent'}`}></div>
       <div className="fixed top-0 left-0 w-full h-[60vh] bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
@@ -499,9 +448,8 @@ const App: React.FC = () => {
           <button 
             onClick={() => setIsStarted(false)}
             className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
-            aria-label="Stop tracking"
           >
-            <i className="fa-solid fa-power-off" aria-hidden="true"></i>
+            <i className="fa-solid fa-power-off"></i>
           </button>
         </header>
 
